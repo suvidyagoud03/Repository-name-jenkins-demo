@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_REGION = 'eu-north-1'
+        ECR_REPO = '383418748273.dkr.ecr.eu-north-1.amazonaws.com/suvidya-nginx'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -21,9 +26,28 @@ pipeline {
             }
         }
 
-        stage('Docker Image') {
+        stage('ECR Login') {
             steps {
-                sh 'docker images'
+                sh '''
+                    aws ecr get-login-password --region $AWS_REGION |
+                    docker login --username AWS --password-stdin $ECR_REPO
+                '''
+            }
+        }
+
+        stage('Docker Tag') {
+            steps {
+                sh '''
+                    docker tag jenkins-demo:latest $ECR_REPO:latest
+                '''
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh '''
+                    docker push $ECR_REPO:latest
+                '''
             }
         }
     }
