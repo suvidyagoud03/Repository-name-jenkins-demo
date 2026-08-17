@@ -1,5 +1,10 @@
 pipeline {
+
     agent any
+
+    environment {
+        ECR_REPO = '383418748273.dkr.ecr.eu-north-1.amazonaws.com/suvidya-nginx'
+    }
 
     stages {
 
@@ -26,13 +31,14 @@ pipeline {
                 sh 'docker images'
             }
         }
-    }
-}
-stage('Deploy to Kubernetes') {
-    steps {
-        sh '''
-            kubectl --kubeconfig=/var/lib/jenkins/.kube/config apply -f deployment.yaml
-            kubectl --kubeconfig=/var/lib/jenkins/.kube/config apply -f service.yaml
-        '''
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                    kubectl --kubeconfig=/var/lib/jenkins/.kube/config apply -f deployment.yaml
+                    kubectl --kubeconfig=/var/lib/jenkins/.kube/config apply -f service.yaml
+                '''
+            }
+        }
     }
 }
